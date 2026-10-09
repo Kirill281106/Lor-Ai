@@ -31,10 +31,10 @@ def predict_image(image_path):
     try:
         image = Image.open(image_path).convert('RGB')
     except FileNotFoundError:
-        print(f"\n❌ Файл не найден: {image_path}\n")
+        print(f"\n Файл не найден: {image_path}\n")
         return
     except Exception as e:
-        print(f"\n❌ Ошибка при открытии: {e}\n")
+        print(f"\n Ошибка при открытии: {e}\n")
         return
 
     image_tensor = transform(image).unsqueeze(0)
@@ -51,26 +51,24 @@ def predict_image(image_path):
     predicted_class = CLASSES[sorted_idx[0].item()]
 
     print(f"\n{'='*60}")
-    print(f"📁 Файл: {os.path.basename(image_path)}")
+    print(f"Файл: {os.path.basename(image_path)}")
     print(f"{'='*60}")
 
-    # 🎯 Логика определения "не знаю"
     if top1_prob < CONFIDENCE_THRESHOLD:
-        print(f"❓ Я НЕ ЗНАЮ, ЧТО ЭТО")
+        print(f" Я НЕ ЗНАЮ, ЧТО ЭТО")
         print(f"   Уверенность слишком низкая: {top1_prob*100:.2f}% (порог: {CONFIDENCE_THRESHOLD*100:.0f}%)")
-        print(f"   Возможно, это заболевание, которого нет в моём датасете.")
-        print(f"   Или фото плохого качества / не является отоскопическим снимком.")
+        print(f"   Возможно, это заболевание, которого нет в моём датасете или фото плохого качества / не является отоскопическим снимком.")
     elif margin < MARGIN_THRESHOLD:
-        print(f"⚠️  Я НЕ УВЕРЕНА")
+        print(f" Я НЕ УВЕРЕНА")
         print(f"   Модель колеблется между классами:")
         print(f"      {CLASSES[sorted_idx[0].item()]}: {top1_prob*100:.2f}%")
         print(f"      {CLASSES[sorted_idx[1].item()]}: {top2_prob*100:.2f}%")
         print(f"   Разрыв слишком маленький ({margin*100:.1f}%).")
         print(f"   Рекомендуется консультация специалиста.")
     else:
-        print(f"🔬 Диагноз: {predicted_class}")
-        print(f"📊 Уверенность: {top1_prob*100:.2f}%")
-        print(f"📏 Разрыв с 2-м классом: {margin*100:.2f}%")
+        print(f" Диагноз: {predicted_class}")
+        print(f" Уверенность: {top1_prob*100:.2f}%")
+        print(f" Разрыв с 2-м классом: {margin*100:.2f}%")
 
     # Распределение вероятностей (всегда показываем)
     print(f"\n{'-'*60}")

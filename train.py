@@ -6,21 +6,17 @@ from torch.utils.data import DataLoader, random_split
 from torchvision import datasets, models, transforms
 import matplotlib.pyplot as plt
 
-# --- 1. НАСТРОЙКИ ---
-# ВАЖНО: Замените обратные слеши на прямые или используйте r"", чтобы избежать ошибок в Python
+
 DATA_DIR = r"E:\3 курс\Lor_Ai\Otoscopic_Data"
 BATCH_SIZE = 32
 EPOCHS = 15
 LEARNING_RATE = 0.001
 NUM_CLASSES = 5  # У нас 5 папок
 
-# Проверяем, доступна ли видеокарта
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(f"Используется устройство: {device}")
 
-# --- 2. ПРЕДОБРАБОТКА ДАННЫХ (АУГМЕНТАЦИЯ) ---
-# Медицинские снимки нужно нормализовать и немного изменять при обучении,
-# чтобы модель не запоминала картинки наизусть (overfitting)
+# предобработка
 data_transforms = {
     'train': transforms.Compose([
         transforms.Resize((224, 224)),  # Стандартный размер для ResNet
@@ -37,44 +33,36 @@ data_transforms = {
     ]),
 }
 
-# --- 3. ЗАГРУЗКА ДАННЫХ ---
-# Загружаем весь датасет
 full_dataset = datasets.ImageFolder(root=DATA_DIR, transform=data_transforms['train'])
 class_names = full_dataset.classes
 print(f"Найдены классы: {class_names}")
 
-# Разделяем на Train (80%) и Validation (20%)
+# Train (80%) и Validation (20%)
 train_size = int(0.8 * len(full_dataset))
 val_size = len(full_dataset) - train_size
 train_dataset, val_dataset = random_split(full_dataset, [train_size, val_size])
 
-# Для валидации отключаем аугментацию
 val_dataset.dataset.transform = data_transforms['val']
 
 train_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True)
 val_loader = DataLoader(val_dataset, batch_size=BATCH_SIZE, shuffle=False)
 
-# --- 4. СОЗДАНИЕ МОДЕЛИ (TRANSFER LEARNING) ---
-# Используем ResNet18 - она быстрая и точная
+# создание модели
 model = models.resnet18(weights=models.ResNet18_Weights.DEFAULT)
 
-# Замораживаем все слои, кроме последнего
 for param in model.parameters():
     param.requires_grad = False
 
-# Заменяем последний слой (fc) под наши 5 классов
 num_ftrs = model.fc.in_features
 model.fc = nn.Linear(num_ftrs, NUM_CLASSES)
 
 model = model.to(device)
 
-# --- 5. ФУНКЦИЯ ПОТЕРЬ И ОПТИМИЗАТОР ---
+
 criterion = nn.CrossEntropyLoss()
-# Обучаем только параметры последнего слоя
 optimizer = optim.Adam(model.fc.parameters(), lr=LEARNING_RATE)
 
 
-# --- 6. ЦИКЛ ОБУЧЕНИЯ ---
 def train_model():
     best_acc = 0.0
 
@@ -106,7 +94,6 @@ def train_model():
         epoch_acc = corrects.double() / len(train_dataset)
         print(f'Train Loss: {epoch_loss:.4f} Acc: {epoch_acc:.4f}')
 
-        # Фаза валидации
         model.eval()
         val_running_loss = 0.0
         val_corrects = 0

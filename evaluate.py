@@ -6,31 +6,29 @@ from sklearn.metrics import confusion_matrix, classification_report
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-# --- Настройки ---
 DATA_DIR = r"E:\3 курс\Lor_Ai\Otoscopic_Data"
 MODEL_PATH = 'best_lor_model.pth'
 BATCH_SIZE = 16
 device = torch.device("cpu")
 
-# --- Трансформации (как при валидации) ---
 transform = transforms.Compose([
     transforms.Resize((224, 224)),
     transforms.ToTensor(),
     transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
 ])
 
-# --- Загрузка данных ---
+# Загрузка данных
 full_dataset = datasets.ImageFolder(root=DATA_DIR, transform=transform)
 class_names = full_dataset.classes
 loader = DataLoader(full_dataset, batch_size=BATCH_SIZE, shuffle=False)
 
-# --- Загрузка модели ---
+# Загрузка модели
 model = models.resnet18(weights=None)
 model.fc = nn.Linear(model.fc.in_features, len(class_names))
 model.load_state_dict(torch.load(MODEL_PATH, map_location=device))
 model.eval()
 
-# --- Прогон по всему датасету ---
+# Прогон по всему датасету
 all_preds = []
 all_labels = []
 
