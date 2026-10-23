@@ -17,7 +17,7 @@ ax1.legend(fontsize=11)
 ax1.grid(True, alpha=0.3)
 
 ax2.plot(epochs, train_loss, 'b-o', label='Train Loss', linewidth=2)
-ax2.plot(epochs, val_loss, 'r-o', label='Validation Loss', linewidth=2)
+ax2.plot(epochs, val_loss, 'r-o', label='Val.\.venv\Scripts\python.exe -m uvicorn api.main:app --reload idation Loss', linewidth=2)
 ax2.set_xlabel('Эпоха', fontsize=12)
 ax2.set_ylabel('Loss', fontsize=12)
 ax2.set_title('Функция потерь по эпохам', fontsize=13)

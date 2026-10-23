@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Lor-AI Minimal</title>
+    <style>
+        body { font-family: sans-serif; display: flex; flex-direction: column; align-items: center; padding-top: 50px; }
+        #dropzone { width: 300px; height: 200px; border: 2px dashed #ccc; display: flex; align-items: center; justify-content: center; cursor: pointer; margin-bottom: 20px; text-align: center; }
+        #result { white-space: pre-wrap; background: #f0f0f0; padding: 10px; border-radius: 5px; min-width: 300px; }
+    </style>
+</head>
+<body>
+
+    <div id="dropzone">Скиньте фото сюда<br>(или кликните для выбора)</div>
+    <input type="file" id="fileInput" style="display:none" accept="image/*">
+    <p>Нажмите <b>Enter</b> для отправки</p>
+    <div id="result">Результат появится здесь...</div>
+
+    <script>
+        const dropzone = document.getElementById('dropzone');
+        const fileInput = document.getElementById('fileInput');
+        const resultDiv = document.getElementById('result');
+        let selectedFile = null;
+
+        // Клик по зоне -> выбор файла
+        dropzone.onclick = () => fileInput.click();
+
+        fileInput.onchange = (e) => {
+            selectedFile = e.target.files[0];
+            if (selectedFile) dropzone.innerText = "Выбрано: " + selectedFile.name;
+        };
+
+        // Drag & Drop
+        dropzone.ondragover = (e) => { e.preventDefault(); dropzone.style.borderColor = 'blue'; };
+        dropzone.ondragleave = () => { dropzone.style.borderColor = '#ccc'; };
+        dropzone.ondrop = (e) => {
+            e.preventDefault();
+            dropzone.style.borderColor = '#ccc';
+            selectedFile = e.dataTransfer.files[0];
+            if (selectedFile) dropzone.innerText = "Выбрано: " + selectedFile.name;
+        };
+
+        // Отправка по Enter
+        window.onkeydown = async (e) => {
+            if (e.key === 'Enter' && selectedFile) {
+                resultDiv.innerText = "Отправка...";
+
+                const formData = new FormData();
+                formData.append('file', selectedFile);
+
+                try {
+                    const response = await fetch('http://localhost:8000/predict', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    const data = await response.json();
+
+                    // Красивый вывод результата
+                    let output = "Распределение вероятностей:\n";
+
+                    // Сортируем вероятности по убыванию
+                    const sortedProbs = Object.entries(data.probabilities).sort((a, b) => b[1] - a[1]);
+
+                    sortedProbs.forEach(([label, val]) => {
+                        output += `${label.padEnd(20)} ${val}% \n`;
+                    });
+
+                    output += "\n"; // Отступ в одну строку вместо линии
+                    output += `Заключение: ${data.message}\n\n`;
+                    output += "⚠️ Внимание: данный результат сформирован ИИ и является предварительным. ";
+                    output += "ИИ лишь помогает в анализе. Для постановки точного диагноза ";
+                    output += "обязательно проконсультируйтесь с квалифицированным врачом-специалистом.";
+
+                    resultDiv.innerText = output;
+                } catch (err) {
+                    resultDiv.innerText = "Ошибка: " + err.message;
+                }
+            }
+        };
+    </script>
+</body>
+</html>

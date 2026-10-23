@@ -2,12 +2,22 @@ import io
 
 import torch
 from fastapi import FastAPI, File, HTTPException, UploadFile
+from fastapi.middleware.cors import CORSMiddleware
 from PIL import Image
 
 # Модель, трансформации, классы и пороги берём из predict.py без изменений
 from predict import CLASSES, CONFIDENCE_THRESHOLD, MARGIN_THRESHOLD, model, transform
 
 app = FastAPI(title="Lor-Ai API")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 
 
 @app.post("/predict")
